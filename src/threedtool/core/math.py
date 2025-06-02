@@ -5,9 +5,9 @@ import numpy as np
 from loguru import logger
 from typing import Optional
 from .plane import Plane
-from .triangle import Triangle
-from .polygon import Polygon
-from .curve import Curve5x
+# from .triangle import Triangle
+# from .polygon import Polygon
+# from .curve import Curve5x
 
 log = False
 

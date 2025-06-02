@@ -2,9 +2,9 @@ from __future__ import annotations
 from math import sqrt
 from loguru import logger
 import numpy as np
-from numpy import ndarray
+from numpy.typing import NDArray
 from .plane import Plane
-
+from threedtool import normalization
 
 class Line:
     """
@@ -97,21 +97,21 @@ class Line:
         logger.debug(
             f'a = {self._a}, b = {self._b}, c = {self._c}, p1 = {self._p1}, p2 = {self._p2}, p3 = {self._p3}')
 
-    def coeffs(self) -> ndarray:
+    def coeffs(self) -> NDArray:
         """
         Функция возвращает коэффициенты линии
-        :return: ndarray[float]
+        :return: NDArray[float]
         """
         return np.array([self._a, self._b, self._c, self._p1, self._p2, self._p3])
 
-    def line_create_from_points(self, point1: ndarray | list, point2: ndarray | list) -> None:
+    def line_create_from_points(self, point1: NDArray | list, point2: NDArray | list) -> None:
         """
         Создает коэффициенты прямой по двум точкам в пространстве.
         Принимает точку в виде массива 1x3 объекта класса numpy.array с тремя координатами [x, y, z]
         :param point1: Точка типа [x1, y1, z1]
-        :type point1: ndarray[float]
+        :type point1: NDArray[float]
         :param point2: Точка типа [x2, y2, z2]
-        :type point2: ndarray[float]
+        :type point2: NDArray[float]
         :return: None
         """
         if np.shape(point1) == (2,):
@@ -183,43 +183,51 @@ class Line:
                 self._c = 0
                 self._a = (plane2.d * plane1.b - plane1.d * plane2.b) / val1_1
                 self._b = - (plane2.a * self._a + plane2.d) / plane2.b
+                return None
             elif val1_2 != 0 and plane2.b == 0:
                 self._c = 0
                 self._b = (plane1.a * plane2.d - plane1.d * plane2.a) / val1_2
                 self._a = - (plane2.b * self._c + plane2.d) / plane2.a
+                return None
 
             elif val2_1 != 0 and plane2.c != 0:
                 self._b = 0
                 self._a = (plane2.d * plane1.c - plane1.d * plane2.c) / val2_1
                 self._c = -(plane2.a * self._a + plane2.d) / plane2.c
+                return None
 
             elif val2_2 != 0 and plane2.a != 0:
                 self._b = 0
                 self._c = (plane1.a * plane2.d - plane2.a * plane1.d) / val2_2
                 self._a = -(plane2.c * self._c + plane2.d) / plane2.a
+                return None
 
             elif val3_1 != 0 and plane2.c != 0:
                 self._a = 0
                 self._b = (plane1.c * plane2.d - plane1.d * plane2.c) / val3_1
                 self._c = -(plane2.b * self._b + plane2.d) / plane2.c
+                return None
             elif val3_2 != 0 and plane2.b != 0:
                 self._a = 0
                 self._c = (plane2.b * plane1.d - plane2.d * plane1.b) / val3_2
                 self._b = -(plane2.c * self._c + plane2.d) / plane2.b
+                return None
             else:
                 if self.log:
                     logger.debug("Zero Error")
+                    return None
+                return None
         else:
             if self.log:
                 logger.debug("Плоскости не пересекаются и либо параллельны, либо совпадают")
             return False
 
-    def point_belongs_to_the_line(self, point: list or ndarray) -> bool:
+    def point_belongs_to_the_line(self, point: list or NDArray) -> bool:
         """
         Функция, определяющая, принадлежит ли точка прямой. Возвращает True,
         если принадлежит, False, если не принадлежит.
         :param point: список из координат [x, y, z]
-        :type point: list or ndarray
+        :type point: list or NDArray
         :return: bool
         """
         eq1 = np.round(self.p2 * self.p3 * (point[0] - self.a) - self.p1 * self.p3 * (point[1] - self.b), 8)
@@ -241,30 +249,13 @@ class Line:
                 "c": self.c * self.p2 / self.p3
                 }
 
-    def show(self, ax):
-        """
-        Функция отображает линию
-        :param ax: объект класса Axes
-        :type ax: matplotlib.axes.Axes
-        :return: None
-        """
-        p = self.coeffs()[3:6]
-        abc = self.coeffs()[0:3]
-        pabc = p * 15 + abc
-        pmabc = -p * 15 + abc
-        points = np.vstack([pabc, pmabc])
-        x = points.T[0]
-        y = points.T[1]
-        z = points.T[2]
-        ax.plot(x, y, z)
-
-    def line_create_from_point_vector(self, point: list | ndarray, vector: list | ndarray) -> None:
+    def line_create_from_point_vector(self, point: NDArray, vector: NDArray) -> None:
         """
         Функция создает линию по точке и вектору
         :param point: точка, через которую проходит вектор
-        :type point: list | ndarray
+        :type point: NDArray
         :param vector: вектор, задающий направление линии
-        :type vector: list | ndarray
+        :type vector: NDArray
         :return: None
         """
         self.p1 = vector[0]
@@ -274,14 +265,13 @@ class Line:
         self.b = point[1]
         self.c = point[2]
 
-    def offset_point(self, distance: float | int) -> ndarray:
+    def offset_point(self, distance: float | int) -> NDArray:
         """
         Данная функция возвращает точку, которая отступается от центра линии [a, b, c] на расстояние distance
         :param distance: дистанция отступа
         :type distance: float | int
-        :return: ndarray
+        :return: NDArray
         """
-        from .threeDTool import normalization
         vector_plus = normalization(self.coeffs()[3:6], distance)
         return_point = self.coeffs()[0:3] + vector_plus
         return return_point
@@ -318,22 +308,22 @@ class Line_segment(Line):
             f'a = {self._a}, b = {self._b}, c = {self._c}, p1 = {self._p1}, p2 = {self._p2}, p3 = {self._p3}'
             f'\npoint1 = {self.point1}, point2 = {self.point2}')
 
-    def coeffs(self) -> ndarray:
+    def coeffs(self) -> NDArray:
         """
         Функция возвращает коэффициенты отрезка
-        :return: ndarray[float]
+        :return: NDArray[float]
         """
         return np.array([self._a, self._b, self._c, self._p1, self._p2, self._p3])
 
-    def segment_create_from_points(self, point1: list or ndarray,
-                                   point2: list or ndarray) -> None:
+    def segment_create_from_points(self, point1: list or NDArray,
+                                   point2: list or NDArray) -> None:
         """
         Создает коэффициенты прямой по двум точкам в пространстве.
         Принимает точку в виде массива 1x3 объекта класса numpy.array с тремя координатами [x, y, z]
         :param point1: Точка вида [x1, y1, z1]
-        :type point1: list or ndarray
+        :type point1: list or NDArray
         :param point2: Точка вида [x2, y2, z2]
-        :type point2: list or ndarray
+        :type point2: list or NDArray
         :return: None
         """
         if np.shape(point1)[0] == 2:
@@ -377,11 +367,11 @@ class Line_segment(Line):
         self.border_y.sort()
         self.border_z.sort()
 
-    def point_belongs_to_the_segment(self, point: list | ndarray) -> bool:
+    def point_belongs_to_the_segment(self, point: NDArray) -> bool:
         """
         Функция определяет, находится ли точка внутри отрезка
         :param point: точка вида [x, y, z]
-        :type point: list or ndarray
+        :type point: list or NDArray
         :return: None
         """
         if self.point_belongs_to_the_line(point):
@@ -392,13 +382,13 @@ class Line_segment(Line):
         else:
             return False
 
-    def inorno(self, coordinate: list or ndarray) -> bool:
+    def inorno(self, coordinate: list or NDArray) -> bool:
         """
         Функция проверяет, находится ли точка с прямой внутри заданного сегмента. Производится проверка на нулевой
          отрезок, если отрезок состоит из двух одинаковых точек, то смысла искать точку в нулевом отрезке нет.
          True - принадлежит отрезку, False - не принадлежит отрезку.
         :param coordinate: [x, y, z]
-        :type coordinate: list | ndarray
+        :type coordinate: NDArray
         :return: bool
         """
         if (self.border_x[0] <= coordinate[0] <= self.border_x[1] and self.border_y[0] <= coordinate[1] <=
@@ -408,39 +398,30 @@ class Line_segment(Line):
         elif self.point1[0] == self.point2[0] and self.point1[1] == self.point2[1] and self.point1[2] == self.point2[2]:
             if self.log:
                 logger.debug("Нулевой отрезок")
+            return False
         else:
             return False
 
     def get_points(self):
         """
         Функция отдает массив из двух граничных точек отрезка
-        :return: ndarray[ndarray[float]]
+        :return: NDArray[NDArray[float]]
         """
         return np.vstack([self.point1, self.point2])
 
-    def show(self, ax):
-        """
-        Функция отображает отрезок
-        :param ax: объект класса Axes
-        :type ax: matplotlib.axes.Axes
-        :return: None
-        """
-        vT = self.get_points().T
-        ax.plot(vT[0], vT[1], vT[2], color=self.color, linewidth=self.linewidth)
-
-    def line_segment_create_from_point_vector_lenght(self, point: list | ndarray,
-                                                     vector: list | ndarray,
-                                                     lenght: float | int) -> None:
+    def line_segment_create_from_point_vector_lenght(self, point: NDArray,
+                                                     vector: NDArray,
+                                                     lenght: float) -> None:
         """
         Данная функция создает отрезок из поданной точки point в направлении вектора vector и длиной lenght
         :param point: точка, из которой выходит отрезок
-        :type point: list | ndarray
+        :type point: NDArray
         :param vector: вектор, в направлении которого строится отрезок
-        :type vector: list | ndarray
+        :type vector: NDArray
         :param lenght: длина отрезка
         :return: None
         """
-        from .threeDTool import normalization
+
         # Обертка точки и вектора для дальнейшего векторного сложения
         point = np.array(point)
         vector = np.array(vector)

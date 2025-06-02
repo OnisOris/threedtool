@@ -1,5 +1,6 @@
-import matplotlib.pyplot as plt
 import numpy as np
+from .threeDTool import normal_of_triangle
+from numpy import sqrt
 
 
 def full_vstack(vector: list | np.ndarray) -> np.ndarray:
@@ -123,8 +124,7 @@ class Plane:
         :type create_normal: bool
         :return: None
         """
-        from .threeDTool import normal_of_triangle
-        from numpy import sqrt
+
 
         if create_normal:
             vector_N = normal_of_triangle(triangle[0], triangle[1], triangle[2])
