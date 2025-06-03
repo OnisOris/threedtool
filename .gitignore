@@ -184,3 +184,5 @@ fabric.properties
 .idea/
 **/__pycache__/
 *.pyc
+
+uv.lock

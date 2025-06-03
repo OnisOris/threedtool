@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from numpy.typing import NDArray
+from threedtool.core.annotations import Array3
 import numpy as np
 from typing import Union, Tuple
 
@@ -26,16 +27,18 @@ class Figure(ABC):
         pass
 
 
-class Point3(np.ndarray, Figure, ABC):
+class Point3(NDArray, Figure, ABC):
     """
     Класс точки [x, y, z]
     """
 
-    def __new__(cls, data: Union[list, tuple, np.ndarray]):
+    def __new__(cls, data: Array3):
         arr = np.asarray(data, dtype=np.float64)
         if arr.shape != (3,):
             raise ValueError(f"Point3D must have shape (3,), got {arr.shape}")
-        obj = np.ndarray.__new__(cls, shape=arr.shape, dtype=arr.dtype, buffer=arr)
+        obj = NDArray.__new__(
+            cls, shape=arr.shape, dtype=arr.dtype, buffer=arr
+        )
         return obj
 
     def __array_finalize__(self, obj):
@@ -47,24 +50,30 @@ class Point3(np.ndarray, Figure, ABC):
 
 
 class Vector3(Point3):
-    def __new__(cls, data: Union[list, tuple, np.ndarray]):
+    def __new__(cls, data: Array3):
         arr = np.asarray(data, dtype=np.float64)
         if arr.shape != (3,):
             raise ValueError(f"Vector3D must have shape (3,), got {arr.shape}")
-        obj = np.ndarray.__new__(cls, shape=arr.shape, dtype=arr.dtype, buffer=arr)
+        obj = NDArray.__new__(
+            cls, shape=arr.shape, dtype=arr.dtype, buffer=arr
+        )
         return obj
 
 
-class LineSegment3(np.ndarray):
+class LineSegment3(NDArray):
     """
     Класс отрезка, состоящий из двух точек
     """
 
-    def __new__(cls, data: Union[list, tuple, np.ndarray]):
+    def __new__(cls, data: Union[list, tuple, NDArray]):
         arr = np.asarray(data, dtype=np.float64)
         if arr.shape != (3,):
-            raise ValueError(f"LineSegment must have shape (2,3), got {arr.shape}")
-        obj = np.ndarray.__new__(cls, shape=arr.shape, dtype=arr.dtype, buffer=arr)
+            raise ValueError(
+                f"LineSegment must have shape (2,3), got {arr.shape}"
+            )
+        obj = NDArray.__new__(
+            cls, shape=arr.shape, dtype=arr.dtype, buffer=arr
+        )
         return obj
 
     def __array_finalize__(self, obj):
@@ -75,21 +84,23 @@ class LineSegment3(np.ndarray):
         return f"{self.__class__.__name__}({super().__repr__()})"
 
 
-class Line3(Point3):
+class Line3(np.ndarray, Figure):
     """
     Класс строится на каноническом уравнении линии:
-    (x-a)/p1 = (y-b)/p2 = (z-c)/p3
 
+    (x-a)/p1 = (y-b)/p2 = (z-c)/p3
     Матрица Line3 выглядит следующим образом:
     [[a, b, c],
      [p1, p2, p3]]
     """
 
-    def __new__(cls, data: Union[list, tuple, np.ndarray]):
+    def __new__(cls, data: Union[list, tuple, NDArray]):
         arr = np.asarray(data, dtype=np.float64)
         if arr.shape != (2, 3):
             raise ValueError(f"Line3 must have shape (2,3), got {arr.shape}")
-        obj = np.ndarray.__new__(cls, shape=arr.shape, dtype=arr.dtype, buffer=arr)
+        obj = NDArray.__new__(
+            cls, shape=arr.shape, dtype=arr.dtype, buffer=arr
+        )
         return obj
 
     def __init__(self, *args, **kwargs):
