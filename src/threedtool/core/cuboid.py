@@ -2,18 +2,15 @@ from abc import ABC
 from typing import Tuple, Union
 
 import numpy as np
-from icecream import ic
 from numpy.typing import NDArray
+# import trimesh
 
 from threedtool.core.annotations import Array3, Array3x3
 from threedtool.core.transform import (
     rot_x,
     rot_y,
     rot_z,
-    rot_v,
 )
-
-# from pyquaternion import Quaternion
 from threedtool.core.basefigure import Figure, Point3, Vector3
 
 
@@ -81,15 +78,17 @@ class Cuboid(Figure, ABC):
         offsets = np.array(
             [[x, y, z] for x in (-1, 1) for y in (-1, 1) for z in (-1, 1)]
         )
-        ic(offsets)
         local_vertices = offsets * half_sizes
         world_vertices = (self.rotation @ local_vertices.T).T + self.center
-        print(world_vertices)
-        return world_vertices  # (8, 3)
+        return world_vertices
 
     def get_axes(self):
         # Осевые векторы объекта
-        return self.rotation
+        return self.rotation.T
+
+    # def get_axes(self):
+    #     # Осевые векторы объекта
+    #     return [self.rotation[:, i] for i in range(3)]
 
     def is_intersecting(self, other_cuboid) -> bool:
         """
@@ -102,17 +101,15 @@ class Cuboid(Figure, ABC):
         axes1 = self.get_axes()
         axes2 = other_cuboid.get_axes()
 
-        # SAT: 15 осей (3 + 3 + 9 = 15)
-        axes_to_test = (
-            axes1
-            + axes2
-            + [
-                np.cross(a, b)
-                for a in axes1
-                for b in axes2
-                if np.linalg.norm(np.cross(a, b)) > 1e-8
-            ]
-        )
+        cross_products = np.array([
+            np.cross(a, b) for a in axes1 for b in axes2
+            if np.linalg.norm(np.cross(a, b)) > 1e-8
+        ])
+
+        axes_to_test = [axes1, axes2]
+        if cross_products.size > 0:
+            axes_to_test.append(cross_products)
+        axes_to_test = np.concatenate(axes_to_test, axis=0)
 
         for ax in axes_to_test:
             ax = ax / np.linalg.norm(ax)
@@ -159,13 +156,82 @@ class Cuboid(Figure, ABC):
             rot_z(alpha) @ rot_x(betta) @ rot_z(gamma) @ self.rotation
         )
 
+    def get_edges(self):
+        """Возвращает список ребер кубоида в виде пар индексов вершин."""
+        return [
+            (0, 1), (0, 2), (0, 4),
+            (1, 3), (1, 5),
+            (2, 3), (2, 6),
+            (3, 7),
+            (4, 5), (4, 6),
+            (5, 7),
+            (6, 7)
+        ]
+
+    def show(self, ax):
+        """Отображает кубоид на графике."""
+        vertices = self.get_vertices()
+        edges = self.get_edges()
+        
+        # Отображаем вершины
+        ax.scatter(
+            vertices[:, 0], 
+            vertices[:, 1], 
+            vertices[:, 2], 
+            color='blue'
+        )
+        
+        # Отображаем ребра
+        for edge in edges:
+            start, end = vertices[edge[0]], vertices[edge[1]]
+            ax.plot(
+                [start[0], end[0]],
+                [start[1], end[1]],
+                [start[2], end[2]],
+                color='red'
+            )
+
+    # def to_trimesh(self) -> trimesh.Trimesh:
+    #     """
+    #     Преобразует экземпляр Cuboid в корректный объект trimesh.Trimesh
+    #     """
+    #     # создаём unit box с центром в начале координат
+    #     unit_box = trimesh.creation.box(extents=self.length_width_height)
+    #
+    #     # применяем поворот
+    #     rotation_matrix = np.eye(4)
+    #     rotation_matrix[:3, :3] = self.rotation
+    #
+    #     # применяем перенос
+    #     translation_matrix = np.eye(4)
+    #     translation_matrix[:3, 3] = self.center
+    #
+    #     # итоговая трансформация
+    #     transform = translation_matrix @ rotation_matrix
+    #     unit_box.apply_transform(transform)
+    #
+    #     return unit_box
+    #
+    # def get_precise_intersection_points(self, cuboid) -> NDArray[np.float64]:
+    #     mesh1 = self.to_trimesh()
+    #     mesh2 = cuboid.to_trimesh()
+    #
+    #
+    #     if not mesh1.is_volume or not mesh2.is_volume:
+    #         raise ValueError("Один из мешей не является объемом!")
+    #
+    #     intersection = mesh1.intersection(mesh2, engine='igl')
+    #
+    #     if intersection.is_empty:
+    #         return np.empty((0, 3))
+    #
+    #     return intersection.vertices
+
 
 if __name__ == "__main__":
     center = np.array([0, 0, 0])
     lwh = np.array([1, 2, 3])
     cb = Cuboid(center, lwh)
-    ic(cb.get_vertices())
 
     cb.rotate_x(np.pi / 3)
 
-    ic(cb.get_vertices())
