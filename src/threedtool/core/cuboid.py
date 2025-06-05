@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Tuple, Union
+from typing import Tuple, Union, override
 
 import numpy as np
 from numpy.typing import NDArray
@@ -10,6 +10,7 @@ from threedtool.core.transform import (
     rot_x,
     rot_y,
     rot_z,
+    rot_v,
 )
 from threedtool.core.basefigure import Figure, Point3, Vector3
 
@@ -29,6 +30,7 @@ class Cuboid(Figure, ABC):
         center: Array3 = np.zeros((3,)),
         length_width_height: Array3 = np.ones((3,)),
         rotation: Array3x3 = np.eye(3),
+        color: str = "red",
     ):
         """
         Конструктор кубоида
@@ -44,6 +46,7 @@ class Cuboid(Figure, ABC):
         self.center: Array3 = center
         self.length_width_height: Array3 = length_width_height
         self.rotation: Array3x3 = rotation
+        self.color: str = color
 
     @property
     def length(self):
@@ -101,10 +104,14 @@ class Cuboid(Figure, ABC):
         axes1 = self.get_axes()
         axes2 = other_cuboid.get_axes()
 
-        cross_products = np.array([
-            np.cross(a, b) for a in axes1 for b in axes2
-            if np.linalg.norm(np.cross(a, b)) > 1e-8
-        ])
+        cross_products = np.array(
+            [
+                np.cross(a, b)
+                for a in axes1
+                for b in axes2
+                if np.linalg.norm(np.cross(a, b)) > 1e-8
+            ]
+        )
 
         axes_to_test = [axes1, axes2]
         if cross_products.size > 0:
@@ -142,7 +149,7 @@ class Cuboid(Figure, ABC):
         """
         Функция вращения по заданной оси вектором v
         """
-        self.rotation = self.rotation @ rot_z(angle=angle)
+        self.rotation = self.rotation @ rot_v(angle=angle, axis=axis_vector)
 
     def rotate_euler(self, alpha: float, betta: float, gamma: float) -> None:
         """
@@ -159,28 +166,32 @@ class Cuboid(Figure, ABC):
     def get_edges(self):
         """Возвращает список ребер кубоида в виде пар индексов вершин."""
         return [
-            (0, 1), (0, 2), (0, 4),
-            (1, 3), (1, 5),
-            (2, 3), (2, 6),
+            (0, 1),
+            (0, 2),
+            (0, 4),
+            (1, 3),
+            (1, 5),
+            (2, 3),
+            (2, 6),
             (3, 7),
-            (4, 5), (4, 6),
+            (4, 5),
+            (4, 6),
             (5, 7),
-            (6, 7)
+            (6, 7),
         ]
 
     def show(self, ax):
         """Отображает кубоид на графике."""
         vertices = self.get_vertices()
         edges = self.get_edges()
-        
+
         # Отображаем вершины
         ax.scatter(
-            vertices[:, 0], 
-            vertices[:, 1], 
-            vertices[:, 2], 
-            color='blue'
+            vertices[:, 0], vertices[:, 1], vertices[:, 2], color="blue"
         )
-        
+        ax.quiver(*self.center, *self.rotation[0], color="red")
+        ax.quiver(*self.center, *self.rotation[1], color="green")
+        ax.quiver(*self.center, *self.rotation[2], color="blue")
         # Отображаем ребра
         for edge in edges:
             start, end = vertices[edge[0]], vertices[edge[1]]
@@ -188,7 +199,7 @@ class Cuboid(Figure, ABC):
                 [start[0], end[0]],
                 [start[1], end[1]],
                 [start[2], end[2]],
-                color='red'
+                color=self.color,
             )
 
     # def to_trimesh(self) -> trimesh.Trimesh:
@@ -234,4 +245,3 @@ if __name__ == "__main__":
     cb = Cuboid(center, lwh)
 
     cb.rotate_x(np.pi / 3)
-

@@ -1,108 +1,111 @@
 # from __future__ import annotations
 # from math import sqrt
-# from loguru import logger
-# import numpy as np
+from loguru import logger
+import numpy as np
+
+
 # from numpy.typing import NDArray
 # from .plane import Plane
 # from threedtool import normalization
 #
 #
-# class Line:
-#     """
-#     Класс строится на каноническом уравнении линии:
-#
-#     (x-a)/p1 = (y-b)/p2 = (z-c)/p3
-#     """
-#
-#     def __init__(
-#         self,
-#         a: float = 0,
-#         b: float = 0,
-#         c: float = 0,
-#         p1: float = 1,
-#         p2: float = 0,
-#         p3: float = 0,
-#         logging: bool = False,
-#     ):
-#         """
-#         :param a: Коэффициент линии a
-#         :type a: float
-#         :param b: Коэффициент линии b
-#         :type b: float
-#         :param c: Коэффициент линии c
-#         :type c: float
-#         :param p1: Коэффициент направляющего вектора p1
-#         :type p1: float
-#         :param p2: Коэффициент направляющего вектора p2
-#         :type p2: float
-#         :param p3: Коэффициент направляющего вектора p3
-#         :type p3: float
-#         """
-#         self._a = a
-#         self._b = b
-#         self._c = c
-#         self._p1 = p1
-#         self._p2 = p2
-#         self._p3 = p3
-#         self.log = logging
-#
-#     @property
-#     def a(self):
-#         return self._a
-#
-#     @property
-#     def b(self):
-#         return self._b
-#
-#     @property
-#     def c(self):
-#         return self._c
-#
-#     @property
-#     def p1(self):
-#         return self._p1
-#
-#     @property
-#     def p2(self):
-#         return self._p2
-#
-#     @property
-#     def p3(self):
-#         return self._p3
-#
-#     @a.setter
-#     def a(self, a):
-#         self._a = a
-#
-#     @b.setter
-#     def b(self, b):
-#         self._b = b
-#
-#     @c.setter
-#     def c(self, c):
-#         self._c = c
-#
-#     @p1.setter
-#     def p1(self, p1):
-#         self._p1 = p1
-#
-#     @p2.setter
-#     def p2(self, p2):
-#         self._p2 = p2
-#
-#     @p3.setter
-#     def p3(self, p3):
-#         self._p3 = p3
-#
-#     def info(self) -> None:
-#         """
-#         Функция отправляет в консоль информацию об объекте линии
-#         :return: None
-#         """
-#         logger.debug(
-#             f"a = {self._a}, b = {self._b}, c = {self._c}, p1 = {self._p1}, p2 = {self._p2}, p3 = {self._p3}"
-#         )
-#
+class Line:
+    """
+    Класс строится на каноническом уравнении линии:
+
+    (x-a)/p1 = (y-b)/p2 = (z-c)/p3
+    """
+
+    def __init__(
+        self,
+        a: float = 0,
+        b: float = 0,
+        c: float = 0,
+        p1: float = 1,
+        p2: float = 0,
+        p3: float = 0,
+        logging: bool = False,
+    ):
+        """
+        :param a: Коэффициент линии a
+        :type a: float
+        :param b: Коэффициент линии b
+        :type b: float
+        :param c: Коэффициент линии c
+        :type c: float
+        :param p1: Коэффициент направляющего вектора p1
+        :type p1: float
+        :param p2: Коэффициент направляющего вектора p2
+        :type p2: float
+        :param p3: Коэффициент направляющего вектора p3
+        :type p3: float
+        """
+        self._a = a
+        self._b = b
+        self._c = c
+        self._p1 = p1
+        self._p2 = p2
+        self._p3 = p3
+        self.log = logging
+
+    @property
+    def a(self):
+        return self._a
+
+    @property
+    def b(self):
+        return self._b
+
+    @property
+    def c(self):
+        return self._c
+
+    @property
+    def p1(self):
+        return self._p1
+
+    @property
+    def p2(self):
+        return self._p2
+
+    @property
+    def p3(self):
+        return self._p3
+
+    @a.setter
+    def a(self, a):
+        self._a = a
+
+    @b.setter
+    def b(self, b):
+        self._b = b
+
+    @c.setter
+    def c(self, c):
+        self._c = c
+
+    @p1.setter
+    def p1(self, p1):
+        self._p1 = p1
+
+    @p2.setter
+    def p2(self, p2):
+        self._p2 = p2
+
+    @p3.setter
+    def p3(self, p3):
+        self._p3 = p3
+
+    def info(self) -> None:
+        """
+        Функция отправляет в консоль информацию об объекте линии
+        :return: None
+        """
+        logger.debug(
+            f"a = {self._a}, b = {self._b}, c = {self._c}, p1 = {self._p1}, p2 = {self._p2}, p3 = {self._p3}"
+        )
+
+
 #     def coeffs(self) -> NDArray:
 #         """
 #         Функция возвращает коэффициенты линии

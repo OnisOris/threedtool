@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
-from numpy.typing import NDArray
-from threedtool.core.annotations import Array3
+from typing import Tuple, Union
+
 import numpy as np
-from typing import Union, Tuple
+from numpy.typing import NDArray
+
+from threedtool.core.annotations import Array3
+from threedtool.core.transform import normalization
 
 
 class Figure(ABC):
@@ -11,19 +14,19 @@ class Figure(ABC):
     """
 
     @abstractmethod
-    def rotate_x(self):
+    def rotate_x(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def rotate_y(self):
+    def rotate_y(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def rotate_z(self):
+    def rotate_z(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def rotate_euler(self):
+    def rotate_euler(self, *args, **kwargs):
         pass
 
 
@@ -47,6 +50,18 @@ class Point3(NDArray, Figure, ABC):
 
     def __repr__(self):
         return f"{self.__class__.__name__}({super().__repr__()})"
+
+    def rotate_x(self):
+        pass
+
+    def rotate_y(self):
+        pass
+
+    def rotate_z(self):
+        pass
+
+    def rotate_euler(self):
+        pass
 
 
 class Vector3(Point3):
@@ -83,6 +98,21 @@ class LineSegment3(NDArray):
     def __repr__(self):
         return f"{self.__class__.__name__}({super().__repr__()})"
 
+    def rotate_x(self):
+        pass
+
+    def rotate_y(self):
+        pass
+
+    def rotate_z(self):
+        pass
+
+    def rotate_euler(self):
+        pass
+
+    # def to_line3(self) -> Line3:
+    #     return
+
 
 class Line3(np.ndarray, Figure):
     """
@@ -103,8 +133,8 @@ class Line3(np.ndarray, Figure):
         )
         return obj
 
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, length, *args, **kwargs):
+        self.length: float = length
 
     @property
     def a(self):
@@ -130,6 +160,14 @@ class Line3(np.ndarray, Figure):
     def p3(self):
         return self[1, 2]
 
+    @property
+    def abc(self):
+        return self[0]
+
+    @property
+    def p(self):
+        return self[1]
+
     @a.setter
     def a(self, a):
         self[0, 0] = a
@@ -153,6 +191,39 @@ class Line3(np.ndarray, Figure):
     @p3.setter
     def p3(self, p3):
         self[1, 2] = p3
+
+    def rotate_x(self):
+        pass
+
+    def rotate_y(self):
+        pass
+
+    def rotate_z(self):
+        pass
+
+    def rotate_euler(self):
+        pass
+
+    def offset_point(self, distance: float | int) -> Point3:
+        """
+        Точка отступа от центра линии
+
+        Данная функция возвращает точку, которая отступается от центра линии [a, b, c] на расстояние distance
+        в сторону вектора линии
+
+        :param distance: дистанция отступа
+        :type distance: float | int
+        :return: Point3
+        """
+        vector_plus = normalization(self[1], distance)
+        return_point = self.abc + vector_plus
+        return Point3(return_point)
+
+
+# def create_line_from_points(
+#     point1: Point3 | list, point2: Point3 | list
+# ) -> Line3:
+#     return Line3()
 
 
 AABB = Tuple[Point3, Point3]  # (min_corner, max_corner)
