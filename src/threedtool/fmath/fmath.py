@@ -4,7 +4,7 @@ import numpy as np
 from numpy import cos, sin
 from numpy.typing import NDArray
 
-from threedtool.core.annotations import Array3, Array3x3
+from threedtool.annotations import Array3, Array3x3
 
 # from loguru import logger
 # from typing import Optional

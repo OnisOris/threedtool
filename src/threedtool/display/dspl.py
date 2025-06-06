@@ -4,13 +4,8 @@
 #   "pyqt5",
 # ]
 # ///
-import matplotlib.pyplot as plt
 import matplotlib as mpl
-import numpy as np
-from threedtool import Sphere, Cuboid
-from threedtool.core.transform import rot_x, rot_z
-from threedtool import Origin
-from icecream import ic
+import matplotlib.pyplot as plt
 
 
 class Dspl:
@@ -59,67 +54,3 @@ class Dspl:
                 except AttributeError:
                     print(f"Объект {type(obj)} не поддерживает отображение")
         plt.show()
-
-
-if __name__ == "__main__":
-    origin = Origin()
-    # Создаем два кубоида
-    cuboid0 = Cuboid(
-        center=np.array([0, 4.5, 0]), length_width_height=np.array([1, 1, 1])
-    )
-
-    cuboid1 = Cuboid(
-        center=np.array([0, 0, 0]), length_width_height=np.array([1, 1, 1])
-    )
-
-    cuboid2 = Cuboid(
-        center=np.array([1.5, 0, 0]),
-        length_width_height=np.array([1, 1, 1]),
-        rotation=rot_x(np.pi / 4),
-    )
-
-    cuboid3 = Cuboid(
-        center=np.array([4.5, 0, 0]),
-        length_width_height=np.array([1, 1, 1]),
-        color="green",
-    )
-
-    cuboid4 = Cuboid(
-        center=np.array([0, 0, 4.5]), length_width_height=np.array([1, 1, 1])
-    )
-
-    cuboid5 = Cuboid(
-        center=np.array([1.5, 0, 4.5]),
-        length_width_height=np.array([1, 1, 1]),
-        rotation=rot_x(np.pi / 4),
-    )
-
-    cuboid6 = Cuboid(
-        center=np.array([4.5, 0, 4.5]),
-        length_width_height=np.array([1, 1, 1]),
-        color="green",
-    )
-
-    # cuboid3.rotate_x(np.pi / 3)
-    cuboid6.rotate_z(np.pi / 4)
-    cuboid6.rotate_x(np.pi / 4)
-    cuboid6.color = "blue"
-
-    ic(cuboid2.is_intersecting(cuboid3))
-    sp = Sphere(center=np.array([0, 0, 0]), radius=2)
-    # Создаем визуализатор и отображаем объекты
-    visualizer = Dspl(
-        [
-            sp,
-            cuboid0,
-            cuboid1,
-            cuboid2,
-            cuboid3,
-            origin,
-            cuboid4,
-            cuboid5,
-            cuboid6,
-        ]
-    )
-    # ic(cuboid2.get_precise_intersection_points(cuboid3))
-    visualizer.show()

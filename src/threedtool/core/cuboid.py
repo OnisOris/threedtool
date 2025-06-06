@@ -3,16 +3,16 @@ from typing import Tuple, Union, override
 
 import numpy as np
 from numpy.typing import NDArray
-# import trimesh
 
-from threedtool.core.annotations import Array3, Array3x3
-from threedtool.core.transform import (
+# import trimesh
+from threedtool.annotations import Array3, Array3x3
+from threedtool.core.basefigure import Figure, Point3, Vector3
+from threedtool.fmath.fmath import (
+    rot_v,
     rot_x,
     rot_y,
     rot_z,
-    rot_v,
 )
-from threedtool.core.basefigure import Figure, Point3, Vector3
 
 
 def project(points: NDArray[np.float64], axis: Vector3) -> Tuple[float, float]:
@@ -126,6 +126,28 @@ class Cuboid(Figure, ABC):
                 return False  # Есть разделяющая ось
 
         return True  # Нет разделяющих осей
+
+    def is_intersecting_sphere(self, sphere) -> bool:
+        """
+        Проверяет пересечение кубоида и сферы
+
+        :param sphere: Объект сферы
+        :return: True если есть пересечение, иначе False
+        """
+        # Преобразование центра сферы в локальную систему кубоида
+        center_local = self.rotation.T @ (sphere.center - self.center)
+
+        # Размеры кубоида в локальной системе
+        half_sizes = self.length_width_height / 2.0
+
+        # Находим ближайшую точку в локальных координатах
+        closest_local = np.clip(center_local, -half_sizes, half_sizes)
+
+        # Вычисляем расстояние между точками
+        distance_sq = np.sum((center_local - closest_local) ** 2)
+
+        # Проверяем пересечение
+        return distance_sq <= (sphere.radius**2)
 
     def rotate_x(self, angle: float) -> None:
         """

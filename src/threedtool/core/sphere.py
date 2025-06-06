@@ -1,6 +1,6 @@
 import numpy as np
 
-from threedtool.core.annotations import Array3, Array3x3
+from threedtool.annotations import Array3, Array3x3
 from threedtool.core.basefigure import Figure
 
 
