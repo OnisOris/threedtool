@@ -1,23 +1,22 @@
 from abc import ABC
-from typing import Tuple, Union, override
+from idlelib.configdialog import is_int
+# from typing import Tuple, Union, override
 
 import numpy as np
 from numpy.typing import NDArray
 
+
 # import trimesh
+
 from threedtool.annotations import Array3, Array3x3
-from threedtool.core.basefigure import Figure, Point3, Vector3
+from threedtool.core.basefigure import Figure
 from threedtool.fmath.fmath import (
     rot_v,
     rot_x,
     rot_y,
     rot_z,
+    project,
 )
-
-
-def project(points: NDArray[np.float64], axis: Vector3) -> Tuple[float, float]:
-    projections = points @ axis
-    return projections.min(), projections.max()
 
 
 class Cuboid(Figure, ABC):
@@ -89,20 +88,65 @@ class Cuboid(Figure, ABC):
         # Осевые векторы объекта
         return self.rotation.T
 
-    # def get_axes(self):
-    #     # Осевые векторы объекта
-    #     return [self.rotation[:, i] for i in range(3)]
+    def intersects_with(self, other):
+        from threedtool.core.sphere import Sphere, Line3  # локальный импорт, чтобы избежать циклов
 
-    def is_intersecting(self, other_cuboid) -> bool:
-        """
-        Проверка пересечения двух вращённых кубоидов с помощью SAT
-        """
+        if isinstance(other, Cuboid):
+            return self.is_intersecting_cuboid(other)
+        elif isinstance(other, Sphere):
+            return self.is_intersecting_sphere(other)
+        elif isinstance(other, Line3):
+            return self.is_intersecting_line(other)
+        return False
 
+    def is_intersecting_line(self, line: "Line3") -> bool:
+        """
+        Проверяет пересечение бесконечной прямой и ориентированного кубоида
+        через метод «slab intersection» в локальных координатах.
+        """
+        # Переводим прямую в локальную систему кубоида
+        R = self.rotation  # 3×3
+        C = self.center  # 3,
+        A = line.abc
+        v = line.p  # 3, нормирован
+
+        A_loc = R.T.dot(A - C)
+        v_loc = R.T.dot(v)
+
+        half = self.length_width_height / 2.0
+
+        t_min, t_max = -np.inf, np.inf
+
+        # для каждой локальной оси i
+        for i in range(3):
+            if abs(v_loc[i]) < 1e-8:
+                # прямая параллельна граням: если не в промежутке, то нет пересечения
+                if A_loc[i] < -half[i] or A_loc[i] > half[i]:
+                    return False
+            else:
+                # находим пересечения с «плоскостями» x_i=±half[i]
+                t1 = (-half[i] - A_loc[i]) / v_loc[i]
+                t2 = (half[i] - A_loc[i]) / v_loc[i]
+                t_near, t_far = min(t1, t2), max(t1, t2)
+
+                t_min = max(t_min, t_near)
+                t_max = min(t_max, t_far)
+                if t_min > t_max:
+                    return False
+
+        return True  # существует хотя бы один t, где прямая внутри кубоида
+
+    def is_intersecting_cuboid(self, other_cuboid):
+        class_name = other_cuboid.__class__.__name__
+        module_name = other_cuboid.__class__.__module__
+        if class_name != "Cuboid" and module_name != "threedtool.core.cuboid.Cuboid":
+            raise TypeError
         vertices1 = self.get_vertices()
         vertices2 = other_cuboid.get_vertices()
 
         axes1 = self.get_axes()
         axes2 = other_cuboid.get_axes()
+
 
         cross_products = np.array(
             [
@@ -124,8 +168,8 @@ class Cuboid(Figure, ABC):
             min2, max2 = project(vertices2, ax)
             if max1 < min2 or max2 < min1:
                 return False  # Есть разделяющая ось
+        return True
 
-        return True  # Нет разделяющих осей
 
     def is_intersecting_sphere(self, sphere) -> bool:
         """

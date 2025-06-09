@@ -1,7 +1,9 @@
 import numpy as np
 
+# from threedtool import Vector3
 from threedtool.annotations import Array3, Array3x3
 from threedtool.core.basefigure import Figure
+from threedtool.fmath.fmath import is_intersecting_line_sphere
 
 
 class Sphere(Figure):
@@ -41,6 +43,37 @@ class Sphere(Figure):
 
         # Отметим центр
         ax.scatter(*self.center, color="blue")
+
+
+    def intersects_with(self, other):
+        if isinstance(other, Sphere):
+            return self.is_intersecting_sphere(other)
+        from threedtool.core.cuboid import Cuboid
+        if isinstance(other, Cuboid):
+            return other.is_intersecting_sphere(self)
+        from threedtool.core.line import Line3
+        if isinstance(other, Line3):
+            return self.is_intersecting_line(other)
+        return False
+
+    def is_intersecting_sphere(self, other_sphere):
+        center_dist_sq = np.sum((self.center - other_sphere.center) ** 2)
+        radius_sum = self.radius + other_sphere.radius
+        return center_dist_sq <= radius_sum ** 2
+
+    def is_intersecting_line(self, line: "Line3") -> bool:
+        """
+        Проверяет пересечение бесконечной прямой и сферы.
+
+        Расстояние от центра сферы до прямой:
+            dist = || (C - A) × v ||
+        где A — точка на прямой, v — единичный направляющий вектор прямой,
+              C — центр сферы.
+
+        :param line: объект Line3
+        :return: True, если пересекаются, иначе False
+        """
+        return is_intersecting_line_sphere(self, line)
 
     def rotate_x(self):
         pass

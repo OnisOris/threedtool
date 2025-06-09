@@ -1,9 +1,11 @@
 # from __future__ import annotations
 # from math import sqrt
 from abc import ABC, abstractmethod
+from email.base64mime import header_length
 from typing import Tuple, Union
 
 import numpy as np
+from docutils.nodes import header
 from loguru import logger
 from numpy.typing import NDArray
 
@@ -15,6 +17,7 @@ from threedtool.fmath.fmath import (
     rot_z,
     rot_v,
 )
+from threedtool.fmath.fmath import is_intersecting_line_sphere
 from threedtool.core.basefigure import Figure, Point3
 from threedtool.annotations import Array3
 
@@ -226,13 +229,42 @@ class Line3(np.ndarray, Figure):
         """
         Отображает линию
         """
-        ax.scatter(self[0, 0], self[0, 1], self[0, 2], color="blue")
+        ax.scatter(self[0, 0], self[0, 1], self[0, 2], color="#FF00FF")
         vector = self[1]
-        ax.quiver(*self[0], *vector, color="red", length=self.length / 2)
+        ax.quiver(*self[0], *vector, color="#FF00FF", length=self.length / 2)
         offset_point = self.offset_point(-self.length / 2)
         points = np.vstack([self[0], offset_point]).T
-        ax.plot(*points)
+        ax.plot(*points, color="#FF00FF")
 
+    def intersects_with(self, other):
+        from threedtool import Sphere, Cuboid
+
+        if isinstance(other, Cuboid):
+            return self.is_intersecting_cuboid(other)
+        elif isinstance(other, Sphere):
+            return self.is_intersecting_sphere(other)
+        elif isinstance(other, Line3):
+            return self.is_intersecting_line(other)
+        return False
+
+    def is_intersecting_sphere(self, sphere):
+        return is_intersecting_line_sphere(sphere, self)
+
+    def is_intersecting_line(self, line: "Line3") -> bool:
+        rank = np.linalg.matrix_rank(np.vstack([self, line]))
+        return rank == 2
+    def get_ABCD_of_plane(self) -> np.ndarray:
+        """
+        Возвращает ABCD коэффициенты плоскости.
+
+        Через любую линию можно провести плоскость, через которую можно провести перпендикуляр к началу координат, либо
+        нулевой вектор, в случае, если поскость проходит через начало координат
+        """
+        A = self.p2*self.p3
+        B = -2 * self.p1 * self.p3
+        C = self.p1 * self.p2
+        D = - self.a * self.p2 * self.p3 - 2 * self.b * self.p1 * self.p3 - self.c * self.p1 * self.p2
+        return np.array([A, B, C, D])
 
 # class Line:
 #     """

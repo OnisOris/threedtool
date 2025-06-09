@@ -11,4 +11,5 @@ from .fmath.fmath import (
     rot_z,
     rot_v,
     normalization,
+    find_intersections,
 )
