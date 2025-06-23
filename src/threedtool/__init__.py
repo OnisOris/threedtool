@@ -11,5 +11,8 @@ from .fmath.fmath import (
     rot_z,
     rot_v,
     normalization,
-    find_intersections,
+    # find_intersections,
 )
+
+from .fmath.dispatch import intersect
+from .fmath import handlers

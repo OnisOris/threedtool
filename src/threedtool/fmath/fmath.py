@@ -1,20 +1,22 @@
 # from typing import Tuple, Any
 # from .line import Line, Line_segment
 from __future__ import annotations
+
+import inspect
+from typing import Dict, List, Tuple, Union
+
 import numpy as np
 from numpy import cos, sin
 from numpy.typing import NDArray
-from typing import Tuple, Union, override
 
-import threedtool
 from threedtool.annotations import Array3, Array3x3
 from threedtool.core.basefigure import Vector3
-from typing import List, Dict, Union
-import numpy as np
-from typing import List, Dict, Union, Callable, Tuple
+
 
 def get_type_signature(obj):
     return obj.__class__.__module__ + "." + obj.__class__.__name__
+
+
 def normalization(vector: NDArray, length: float = 1.0) -> NDArray:
     """
     Функция возвращает нормированный вектор заданной длины
@@ -105,53 +107,10 @@ def rot_z(angle: float) -> Array3x3:
     )
     return rotate_z
 
+
 def project(points: NDArray[np.float64], axis: Vector3) -> Tuple[float, float]:
     projections = points @ axis
     return projections.min(), projections.max()
-
-def find_intersections(objects: List[object]) -> Dict[int, Union[List[int], str]]:
-    intersections: Dict[int, Union[List[int], str]] = {}
-
-    for i, obj1 in enumerate(objects):
-        if not hasattr(obj1, "intersects_with"):
-            intersections[i] = "unknown"
-            continue
-
-        intersections[i] = []
-        for j, obj2 in enumerate(objects):
-            if i == j:
-                continue
-            try:
-                if obj1.intersects_with(obj2):
-                    intersections[i].append(j)
-            except Exception:
-                continue
-    return intersections
-
-def is_intersecting_line_sphere(sphere: "Sphere", line: "Line3") -> bool:
-    """
-    Проверяет пересечение бесконечной прямой и сферы.
-
-    Расстояние от центра сферы до прямой:
-        dist = || (C - A) × v ||
-    где A — точка на прямой, v — единичный направляющий вектор прямой,
-          C — центр сферы.
-
-    :param line: объект Line3
-    :return: True, если пересекаются, иначе False
-    """
-    # точка A на прямой
-    A = line.abc
-    # направляющий вектор v (должен быть нормирован)
-    v = line.p
-
-    # вектор из A в центр сферы
-    CA = sphere.center - A
-    # векторное произведение и квадрат нормы
-    cross = np.cross(CA, v)
-    dist_sq = np.dot(cross, cross)  # ||cross||^2
-
-    return dist_sq <= (sphere.radius ** 2)
 
 
 # def equal_lines(line1: Line, line2: Line) -> bool:
@@ -767,7 +726,7 @@ def is_intersecting_line_sphere(sphere: "Sphere", line: "Line3") -> bool:
 #     return curves
 #
 #
-# def matrix_dot_all(self, array_matrix) -> ndarray:
+# def matrix_dot_all(a, array_matrix) -> ndarray:
 #     T0_2 = array_matrix[0].dot(array_matrix[1])
 #     return T0_2
 #
@@ -1169,21 +1128,21 @@ def is_intersecting_line_sphere(sphere: "Sphere", line: "Line3") -> bool:
 #
 #
 # class Fvec:
-#     def __init__(self, xyz: ndarray | list, vector: ndarray | list):
+#     def __init__(a, xyz: ndarray | list, vector: ndarray | list):
 #         xyz = np.array(xyz)
 #         vector = np.array(vector)
-#         self.length = 1
+#         a.length = 1
 #         if xyz.shape == (3,) and vector.shape == (3,):
-#             self.full_vector = np.hstack([xyz, vector])
+#             a.full_vector = np.hstack([xyz, vector])
 #         else:
 #             raise Exception("Не соблюдена размерность входных данных")
 #
-#     def show(self, ax) -> None:
+#     def show(a, ax) -> None:
 #         """
 #         Функция отображает траекторию
 #         :param ax:
 #         :type ax: matplotlib.axes.Axes
 #         :return: None
 #         """
-#         ax.quiver(self.full_vector[0], self.full_vector[1], self.full_vector[2], self.full_vector[3],
-#                   self.full_vector[4], self.full_vector[5], length=self.length, color='r')
+#         ax.quiver(a.full_vector[0], a.full_vector[1], a.full_vector[2], a.full_vector[3],
+#                   a.full_vector[4], a.full_vector[5], length=a.length, color='r')

@@ -1,12 +1,8 @@
 from abc import ABC
-from idlelib.configdialog import is_int
-# from typing import Tuple, Union, override
+from typing import List
 
 import numpy as np
 from numpy.typing import NDArray
-
-
-# import trimesh
 
 from threedtool.annotations import Array3, Array3x3
 from threedtool.core.basefigure import Figure
@@ -15,7 +11,6 @@ from threedtool.fmath.fmath import (
     rot_x,
     rot_y,
     rot_z,
-    project,
 )
 
 
@@ -46,6 +41,14 @@ class Cuboid(Figure, ABC):
         self.length_width_height: Array3 = length_width_height
         self.rotation: Array3x3 = rotation
         self.color: str = color
+
+    @property
+    def vertices_base(self):
+        return self.get_vertices()[:4]
+
+    @property
+    def height_vector(self):
+        return self.get_axes()[2] * self.length_width_height[2]
 
     @property
     def length(self):
@@ -87,111 +90,6 @@ class Cuboid(Figure, ABC):
     def get_axes(self):
         # Осевые векторы объекта
         return self.rotation.T
-
-    def intersects_with(self, other):
-        from threedtool.core.sphere import Sphere, Line3  # локальный импорт, чтобы избежать циклов
-
-        if isinstance(other, Cuboid):
-            return self.is_intersecting_cuboid(other)
-        elif isinstance(other, Sphere):
-            return self.is_intersecting_sphere(other)
-        elif isinstance(other, Line3):
-            return self.is_intersecting_line(other)
-        return False
-
-    def is_intersecting_line(self, line: "Line3") -> bool:
-        """
-        Проверяет пересечение бесконечной прямой и ориентированного кубоида
-        через метод «slab intersection» в локальных координатах.
-        """
-        # Переводим прямую в локальную систему кубоида
-        R = self.rotation  # 3×3
-        C = self.center  # 3,
-        A = line.abc
-        v = line.p  # 3, нормирован
-
-        A_loc = R.T.dot(A - C)
-        v_loc = R.T.dot(v)
-
-        half = self.length_width_height / 2.0
-
-        t_min, t_max = -np.inf, np.inf
-
-        # для каждой локальной оси i
-        for i in range(3):
-            if abs(v_loc[i]) < 1e-8:
-                # прямая параллельна граням: если не в промежутке, то нет пересечения
-                if A_loc[i] < -half[i] or A_loc[i] > half[i]:
-                    return False
-            else:
-                # находим пересечения с «плоскостями» x_i=±half[i]
-                t1 = (-half[i] - A_loc[i]) / v_loc[i]
-                t2 = (half[i] - A_loc[i]) / v_loc[i]
-                t_near, t_far = min(t1, t2), max(t1, t2)
-
-                t_min = max(t_min, t_near)
-                t_max = min(t_max, t_far)
-                if t_min > t_max:
-                    return False
-
-        return True  # существует хотя бы один t, где прямая внутри кубоида
-
-    def is_intersecting_cuboid(self, other_cuboid):
-        class_name = other_cuboid.__class__.__name__
-        module_name = other_cuboid.__class__.__module__
-        if class_name != "Cuboid" and module_name != "threedtool.core.cuboid.Cuboid":
-            raise TypeError
-        vertices1 = self.get_vertices()
-        vertices2 = other_cuboid.get_vertices()
-
-        axes1 = self.get_axes()
-        axes2 = other_cuboid.get_axes()
-
-
-        cross_products = np.array(
-            [
-                np.cross(a, b)
-                for a in axes1
-                for b in axes2
-                if np.linalg.norm(np.cross(a, b)) > 1e-8
-            ]
-        )
-
-        axes_to_test = [axes1, axes2]
-        if cross_products.size > 0:
-            axes_to_test.append(cross_products)
-        axes_to_test = np.concatenate(axes_to_test, axis=0)
-
-        for ax in axes_to_test:
-            ax = ax / np.linalg.norm(ax)
-            min1, max1 = project(vertices1, ax)
-            min2, max2 = project(vertices2, ax)
-            if max1 < min2 or max2 < min1:
-                return False  # Есть разделяющая ось
-        return True
-
-
-    def is_intersecting_sphere(self, sphere) -> bool:
-        """
-        Проверяет пересечение кубоида и сферы
-
-        :param sphere: Объект сферы
-        :return: True если есть пересечение, иначе False
-        """
-        # Преобразование центра сферы в локальную систему кубоида
-        center_local = self.rotation.T @ (sphere.center - self.center)
-
-        # Размеры кубоида в локальной системе
-        half_sizes = self.length_width_height / 2.0
-
-        # Находим ближайшую точку в локальных координатах
-        closest_local = np.clip(center_local, -half_sizes, half_sizes)
-
-        # Вычисляем расстояние между точками
-        distance_sq = np.sum((center_local - closest_local) ** 2)
-
-        # Проверяем пересечение
-        return distance_sq <= (sphere.radius**2)
 
     def rotate_x(self, angle: float) -> None:
         """
@@ -246,6 +144,27 @@ class Cuboid(Figure, ABC):
             (6, 7),
         ]
 
+    def get_face_normals(self) -> List[Array3]:
+        """Нормали граней: основание + боковые"""
+        # нормаль основания
+        e1 = self.vertices_base[1] - self.vertices_base[0]
+        e2 = self.vertices_base[2] - self.vertices_base[0]
+        base_normal = np.cross(e1, e2)
+        base_normal /= np.linalg.norm(base_normal)
+
+        normals = [base_normal, -base_normal]
+        # боковые грани
+        N = len(self.vertices_base)
+        for i in range(N):
+            v0 = self.vertices_base[i]
+            v1 = self.vertices_base[(i + 1) % N]
+            edge = v1 - v0
+            side_normal = np.cross(edge, self.height_vector)
+            norm = np.linalg.norm(side_normal)
+            if norm > 1e-8:
+                normals.append(side_normal / norm)
+        return normals
+
     def show(self, ax):
         """Отображает кубоид на графике."""
         vertices = self.get_vertices()
@@ -267,47 +186,3 @@ class Cuboid(Figure, ABC):
                 [start[2], end[2]],
                 color=self.color,
             )
-
-    # def to_trimesh(self) -> trimesh.Trimesh:
-    #     """
-    #     Преобразует экземпляр Cuboid в корректный объект trimesh.Trimesh
-    #     """
-    #     # создаём unit box с центром в начале координат
-    #     unit_box = trimesh.creation.box(extents=self.length_width_height)
-    #
-    #     # применяем поворот
-    #     rotation_matrix = np.eye(4)
-    #     rotation_matrix[:3, :3] = self.rotation
-    #
-    #     # применяем перенос
-    #     translation_matrix = np.eye(4)
-    #     translation_matrix[:3, 3] = self.center
-    #
-    #     # итоговая трансформация
-    #     transform = translation_matrix @ rotation_matrix
-    #     unit_box.apply_transform(transform)
-    #
-    #     return unit_box
-    #
-    # def get_precise_intersection_points(self, cuboid) -> NDArray[np.float64]:
-    #     mesh1 = self.to_trimesh()
-    #     mesh2 = cuboid.to_trimesh()
-    #
-    #
-    #     if not mesh1.is_volume or not mesh2.is_volume:
-    #         raise ValueError("Один из мешей не является объемом!")
-    #
-    #     intersection = mesh1.intersection(mesh2, engine='igl')
-    #
-    #     if intersection.is_empty:
-    #         return np.empty((0, 3))
-    #
-    #     return intersection.vertices
-
-
-if __name__ == "__main__":
-    center = np.array([0, 0, 0])
-    lwh = np.array([1, 2, 3])
-    cb = Cuboid(center, lwh)
-
-    cb.rotate_x(np.pi / 3)

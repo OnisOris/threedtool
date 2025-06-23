@@ -22,8 +22,7 @@ dependencies = [
     "matplotlib",
     "icecream",
     "pyqt5",
-#    "trimesh",
-#    "pyigl",
+
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
