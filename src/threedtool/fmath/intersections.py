@@ -139,16 +139,6 @@ def is_intersecting_line_sphere(sphere, line) -> bool:
     return dist_sq <= (sphere.radius**2)
 
 
-def is_intersecting_line_prism(line, prism) -> bool:
-    V = prism.get_vertices()
-    edges = [(V[i], V[(i + 1) % len(V)]) for i in range(len(V))]
-    for start, end in edges:
-        # параметризуем отрезок и проверяем на пересечение с прямой
-        # TODO: точный алгоритм
-        pass
-    return False
-
-
 def is_intersecting_prism_cuboid(prism, cuboid) -> bool:
     return is_intersecting_prism_prism(prism, cuboid)
 
@@ -176,3 +166,5 @@ def is_intersecting_prism_prism(prism1, prism2) -> bool:
         if max1 < min2 or max2 < min1:
             return False
     return True
+
+
