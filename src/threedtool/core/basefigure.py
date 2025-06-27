@@ -28,6 +28,10 @@ class Figure(ABC):
     def rotate_euler(self, *args, **kwargs):
         pass
 
+    @abstractmethod
+    def show(self, *args, **kwargs):
+        pass
+
 
 class Point3(NDArray, Figure, ABC):
     """
