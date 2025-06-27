@@ -21,43 +21,45 @@ from threedtool.core.basefigure import Figure, Point3
 from threedtool.annotations import Array3
 
 
-class LineSegment3(NDArray):
+def _line_line_intersection(
+    p1: NDArray[np.float64], v1: NDArray[np.float64],
+    p2: NDArray[np.float64], v2: NDArray[np.float64],
+    tol: float = 1e-8
+) -> NDArray[np.float64] | None:
     """
-    Класс отрезка, состоящий из двух точек
+    Решение p1 + t*v1 = p2 + u*v2 для компланарных, не параллельных линий.
+    Возвращает точку пересечения или None.
     """
+    # Проверка ненулевых направлений
+    if np.linalg.norm(v1) < tol or np.linalg.norm(v2) < tol:
+        return None
 
-    def __new__(cls, data: Union[list, tuple, NDArray]):
-        arr = np.asarray(data, dtype=np.float64)
-        if arr.shape != (3,):
-            raise ValueError(
-                f"LineSegment must have shape (2,3), got {arr.shape}"
-            )
-        obj = NDArray.__new__(
-            cls, shape=arr.shape, dtype=arr.dtype, buffer=arr
-        )
-        return obj
+    # Проверка компланарности (скалярное тройное произведение)
+    if not np.isclose(np.dot(v2, np.cross(v1, p2 - p1)), 0, atol=tol):
+        return None
 
-    def __array_finalize__(self, obj):
-        if obj is None:
-            return
+    # Координата, которую отбрасываем (максимальный модуль minor)
+    drop = int(np.argmax(np.abs(np.cross(v1, v2))))
+    idx = [0, 1, 2]
+    i, j = [k for k in idx if k != drop]
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}({super().__repr__()})"
+    # Строим 2x2 систему A [t, u] = b
+    A = np.array([[v1[i], -v2[i]],
+                  [v1[j], -v2[j]]], dtype=np.float64)
+    b = p2[[i, j]] - p1[[i, j]]
 
-    def rotate_x(self):
-        pass
+    try:
+        t, u = np.linalg.solve(A, b)
+    except np.linalg.LinAlgError:
+        return None
 
-    def rotate_y(self):
-        pass
+    # Точка пересечения
+    X = p1 + t * v1
+    # Проверяем согласованность отложенной координаты
+    if not np.allclose(X[drop], p2[drop] + u * v2[drop], atol=tol):
+        return None
+    return X
 
-    def rotate_z(self):
-        pass
-
-    def rotate_euler(self):
-        pass
-
-    # def to_line3(self) -> Line3:
-    #     return
 
 
 class Line3(np.ndarray, Figure):
@@ -88,8 +90,6 @@ class Line3(np.ndarray, Figure):
         *args,
         **kwargs,
     ):
-        # arr = np.asarray(data, dtype=np.float64)
-        # Figure.__init__(*args, **kwargs)
         self.length: float = length
         self.color = color
 
@@ -229,19 +229,6 @@ class Line3(np.ndarray, Figure):
         points = np.vstack([self[0], offset_point]).T
         ax.plot(*points, color="#FF00FF")
 
-    # def intersects_with(self, other):
-    #     from threedtool import Sphere, Cuboid
-    #
-    #     if isinstance(other, Cuboid):
-    #         return self.is_intersecting_cuboid(other)
-    #     elif isinstance(other, Sphere):
-    #         return self.is_intersecting_sphere(other)
-    #     elif isinstance(other, Line3):
-    #         return self.is_intersecting_line(other)
-    #     return False
-
-    # def is_intersecting_sphere(self, sphere):
-    #     return is_intersecting_line_sphere(sphere, self)
 
     def get_ABCD_of_plane(self) -> np.ndarray:
         """
@@ -259,3 +246,38 @@ class Line3(np.ndarray, Figure):
             - self.c * self.p1 * self.p2
         )
         return np.array([A, B, C, D])
+
+class LineSegment3(np.ndarray):
+    """
+    Класс отрезка, состоящий из двух точек
+    """
+
+    def __new__(cls, data: Union[list, tuple, NDArray]):
+        arr = np.asarray(data, dtype=np.float64)
+        if arr.shape != (3,):
+            raise ValueError(
+                f"LineSegment must have shape (2,3), got {arr.shape}"
+            )
+        obj = NDArray.__new__(
+            cls, shape=arr.shape, dtype=arr.dtype, buffer=arr
+        )
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({super().__repr__()})"
+
+    def rotate_x(self):
+        pass
+
+    def rotate_y(self):
+        pass
+
+    def rotate_z(self):
+        pass
+
+    def rotate_euler(self):
+        pass
