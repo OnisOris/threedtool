@@ -37,9 +37,9 @@ class Cuboid(Figure, ABC):
                                       [k]],
                                       i, j, k - орты
         """
-        self.center: Array3 = center
-        self.length_width_height: Array3 = length_width_height
-        self.rotation: Array3x3 = rotation
+        self.center: Array3 = center.copy()
+        self.length_width_height: Array3 = length_width_height.copy()
+        self.rotation: Array3x3 = rotation.copy()
         self.color: str = color
 
     @property
@@ -144,25 +144,35 @@ class Cuboid(Figure, ABC):
             (6, 7),
         ]
 
-    def get_face_normals(self) -> List[Array3]:
-        """Нормали граней: основание + боковые"""
-        # нормаль основания
-        e1 = self.vertices_base[1] - self.vertices_base[0]
-        e2 = self.vertices_base[2] - self.vertices_base[0]
-        base_normal = np.cross(e1, e2)
-        base_normal /= np.linalg.norm(base_normal)
+    # def get_face_normals(self) -> List[Array3]:
+    #     """Нормали граней: основание + боковые"""
+    #     # нормаль основания
+    #     e1 = self.vertices_base[1] - self.vertices_base[0]
+    #     e2 = self.vertices_base[2] - self.vertices_base[0]
+    #     base_normal = np.cross(e1, e2)
+    #     base_normal /= np.linalg.norm(base_normal)
+    #
+    #     normals = [base_normal, -base_normal]
+    #     # боковые грани
+    #     N = len(self.vertices_base)
+    #     for i in range(N):
+    #         v0 = self.vertices_base[i]
+    #         v1 = self.vertices_base[(i + 1) % N]
+    #         edge = v1 - v0
+    #         side_normal = np.cross(edge, self.height_vector)
+    #         norm = np.linalg.norm(side_normal)
+    #         if norm > 1e-8:
+    #             normals.append(side_normal / norm)
+    #     return normals
 
-        normals = [base_normal, -base_normal]
-        # боковые грани
-        N = len(self.vertices_base)
-        for i in range(N):
-            v0 = self.vertices_base[i]
-            v1 = self.vertices_base[(i + 1) % N]
-            edge = v1 - v0
-            side_normal = np.cross(edge, self.height_vector)
-            norm = np.linalg.norm(side_normal)
-            if norm > 1e-8:
-                normals.append(side_normal / norm)
+    def get_face_normals(self) -> List[Array3]:
+        """Возвращает нормали для всех 6 граней кубоида"""
+        axes = self.get_axes()
+        normals = []
+        for i in range(3):
+            # Положительное и отрицательное направление для каждой оси
+            normals.append(axes[i])
+            normals.append(-axes[i])
         return normals
 
     def show(self, ax):

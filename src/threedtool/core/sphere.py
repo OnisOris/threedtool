@@ -18,9 +18,9 @@ class Sphere(Figure):
         :param center: Координата сферы
         :param radius: Радиус сферы
         """
-        self.center: Array3 = center
+        self.center: Array3 = center.copy()
         self.radius: float = radius
-        self.rotation: Array3x3 = rotation
+        self.rotation: Array3x3 = rotation.copy()
 
     def show(self, ax):
         """

@@ -33,7 +33,7 @@ class Prismoid(Figure):
         self.base_size = np.array(base_size)
         self.top_size = np.array(top_size)
         self.height = height
-        self.rotation = rotation
+        self.rotation = rotation.copy()
         self.color = color
 
         # Вычисляем центр верхнего основания
