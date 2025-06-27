@@ -28,12 +28,12 @@ class Prism(Figure):
         color: str = "magenta",
     ):
         # базовые данные
-        self.vertices_base: NDArray[np.float64] = vertices_base
-        self.height_vec: Array3 = height_vec
+        self.vertices_base: NDArray[np.float64] = vertices_base.copy()
+        self.height_vec: Array3 = height_vec.copy()
         self.color: str = color
         # предкомпилированные вершины (основание + верх)
         top = vertices_base + height_vec
-        self._vertices = np.vstack([vertices_base, top])
+        self._vertices = np.vstack([self.vertices_base, top])
 
     def get_vertices(self) -> NDArray[np.float64]:
         """Все вершины призмы: сначала основание (N), затем верх (N)"""
