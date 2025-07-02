@@ -20,7 +20,7 @@ class Plane(np.ndarray, Figure, ABC):
 
     Наследуется от np.ndarray, всегда имеет размерность (4,), входные данные нормализуются
     """
-    def __new__(cls, data: Union[list, tuple, NDArray], *args, **kwargs):
+    def __new__(cls, data: Union[list, tuple, NDArray]=[0, 0, 1, 0], *args, **kwargs):
         arr = np.asarray(data, dtype=np.float64)
         if arr.shape != (4,):
             raise ValueError(f"Plane must have shape (4,), got {arr.shape}")

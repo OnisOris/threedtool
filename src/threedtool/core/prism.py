@@ -4,12 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from threedtool.annotations import Array3
-from threedtool.core.basefigure import Figure  # , Point3, Vector3
-
-# from threedtool.core.cuboid import Cuboid
-# from threedtool.core.line import Line3
-# from threedtool.core.sphere import Sphere
-# from threedtool.fmath.fmath import project
+from threedtool.core.basefigure import Figure
 
 
 class Prism(Figure):
