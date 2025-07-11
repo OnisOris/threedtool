@@ -1,14 +1,14 @@
 # /// script
 # dependencies = [
 #   "matplotlib",
-#   "pyqt5",
+#   "pyqt6",
 # ]
 # ///
 try:
     import matplotlib as mpl
     import matplotlib.pyplot as plt
 
-    mpl.use("Qt5Agg")
+    mpl.use("qtagg")
 
     class Dspl:
         def __init__(self, input_array):
