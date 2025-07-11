@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "threedtool"
-dynamic = ["version"]
+version = "0.0.6"
 description = "This module is needed to work in geometric primitives"
 requires-python = ">=3.10"
 authors = [
