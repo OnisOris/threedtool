@@ -4,8 +4,6 @@ from typing import Tuple, Union
 import numpy as np
 from numpy.typing import NDArray
 
-from threedtool.annotations import Array3
-
 
 class Figure(ABC):
     """
@@ -78,11 +76,6 @@ class Vector3(Point3):
         return obj
 
 
-# def create_line_from_points(
-#     point1: Point3 | list, point2: Point3 | list
-# ) -> Line3:
-#     return Line3()
 
-
-AABB = Tuple[Point3, Point3]  # (min_corner, max_corner)
+AABB = Tuple[Point3, Point3]
 Plane = Tuple[Vector3, float]
