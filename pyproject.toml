@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "threedtool"
-version = "0.0.6"
+version = "0.0.7"
 description = "This module is needed to work in geometric primitives"
 requires-python = ">=3.10"
 authors = [
@@ -15,12 +15,6 @@ maintainers = [
 ]
 dependencies = [
     "numpy>=2.1.0",
-    "pytest>=8.3.5",
-    "loguru>=0.7.3",
-    "rtree>=1.4.0",
-    "scipy>=1.15.3",
-    "matplotlib",
-    "icecream",
 
 ]
 classifiers = [
@@ -43,7 +37,7 @@ Repository = "https://github.com/OnisOris/threedtool.git"
 [project.optional-dependencies]
 plotting = [
     "matplotlib>=3.10.1",
-    "PyQt5",
+    "PyQt6",
 ]
 
 [dependency-groups]
