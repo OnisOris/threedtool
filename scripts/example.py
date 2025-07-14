@@ -1,6 +1,7 @@
 import threedtool as tdt
 from threedtool.core.prism import Prism
 import numpy as np
+from threedtool.display import Dspl
 
 line = tdt.Line3([[0, 1, 0], [-1, 1, 0]], length=2)
 sp = tdt.Sphere(tdt.Point3([1, 0, 0]), radius=1)
@@ -18,6 +19,6 @@ height_vec = np.array([0.0, 0.0, 2.0])  # высота призмы 2 по Z
 
 # Создаём призму
 pr = Prism(base, height_vec, color="green")
-dspl = tdt.Dspl([line, sp, pr, cb, plane])
+dspl = Dspl([line, sp, pr, cb, plane])
 print(tdt.intersect(sp, cb))
 dspl.show()

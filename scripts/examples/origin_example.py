@@ -1,6 +1,7 @@
 import threedtool as tdt
+from threedtool.display import Dspl
 
 if __name__ == "__main__":
     o = tdt.Origin()
-    dp = tdt.Dspl([o])
+    dp = Dspl([o])
     dp.show()
