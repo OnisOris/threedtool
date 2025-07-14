@@ -1,8 +1,6 @@
 import numpy as np
 from numpy.typing import NDArray
 from threedtool.core.basefigure import Point3, Vector3
-from mpl_toolkits.mplot3d import proj3d  # Добавляем необходимый импорт
-
 
 class Origin:
     def __init__(self,
@@ -26,7 +24,7 @@ class Origin:
         ax.quiver(*self.o, *self.k, color=color_k)
 
         # Преобразование 3D-координат в 2D-экранные координаты
-        x2d, y2d, _ = proj3d.proj_transform(*self.o, ax.get_proj())
+        x2d, y2d, _ = proj_transform(*self.o, ax.get_proj())
 
         # Создание аннотации в 2D-пространстве
         ax.annotate(
@@ -44,3 +42,27 @@ class Origin:
                 edgecolor='none'
             )
         )
+def proj_transform(xs, ys, zs, M):
+    """
+    Transform the points by the projection matrix *M*.
+    """
+    vec = _vec_pad_ones(xs, ys, zs)
+    return _proj_transform_vec(vec, M)
+
+def _vec_pad_ones(xs, ys, zs):
+    if np.ma.isMA(xs) or np.ma.isMA(ys) or np.ma.isMA(zs):
+        return np.ma.array([xs, ys, zs, np.ones_like(xs)])
+    else:
+        return np.array([xs, ys, zs, np.ones_like(xs)])
+
+def _proj_transform_vec(vec, M):
+    vecw = np.dot(M, vec.data)
+    w = vecw[3]
+    txs, tys, tzs = vecw[0]/w, vecw[1]/w, vecw[2]/w
+    if np.ma.isMA(vec[0]):  # we check each to protect for scalars
+        txs = np.ma.array(txs, mask=vec[0].mask)
+    if np.ma.isMA(vec[1]):
+        tys = np.ma.array(tys, mask=vec[1].mask)
+    if np.ma.isMA(vec[2]):
+        tzs = np.ma.array(tzs, mask=vec[2].mask)
+    return txs, tys, tzs
